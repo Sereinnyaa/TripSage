@@ -15,7 +15,7 @@ from contextlib import asynccontextmanager
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -46,24 +46,25 @@ class ChatRequest(BaseModel):
 class PreferenceRequest(BaseModel):
     type: str
     value: str
+    user_id: str = "web_user"
 
 
 # ── App singleton ────────────────────────────────────────────
 
 class TripSageWebApp:
-    """管理 Agent 系统生命周期的单例"""
+    """管理 Agent 系统生命周期，支持多用户记忆隔离"""
 
     def __init__(self):
-        self.user_id = "web_user"
         self.session_id = None
-        self.memory_manager = None
-        self.orchestrator = None
-        self.intention_agent = None
         self.model = None
-        self._agent_cache = {}
+        self.intention_agent = None
         self.circuit_breaker = None
         self._initialized = False
         self._lock = asyncio.Lock()
+
+        # 共享资源（仅初始化一次）
+        # 每个 user_id 独立的状态
+        self._user_states = {}       # user_id -> {memory_manager, agent_cache, orchestrator, lock}
 
     async def initialize(self):
         if self._initialized:
@@ -82,27 +83,9 @@ class TripSageWebApp:
             max_tokens=LLM_CONFIG.get("max_tokens", 8192),
         )
 
-        self.memory_manager = MemoryManager(
-            user_id=self.user_id,
-            session_id=self.session_id,
-            llm_model=self.model,
-        )
-
         self.intention_agent = IntentionAgent(
             name="IntentionAgent",
             model=self.model,
-        )
-
-        lazy_registry = LazyAgentRegistry(
-            model=self.model,
-            cache=self._agent_cache,
-            memory_manager=self.memory_manager,
-        )
-
-        self.orchestrator = OrchestrationAgent(
-            name="OrchestrationAgent",
-            agent_registry=lazy_registry,
-            memory_manager=self.memory_manager,
         )
 
         rc = RESILIENCE_CONFIG
@@ -115,9 +98,41 @@ class TripSageWebApp:
         self._initialized = True
         logger.info(f"TripSageWebApp initialized (session: {self.session_id})")
 
-    async def process_message(self, message: str) -> dict:
+    def _get_user_state(self, user_id: str) -> dict:
+        """获取或创建用户专属状态（记忆管理器、智能体缓存、编排器）"""
+        if user_id not in self._user_states:
+            mm = MemoryManager(
+                user_id=user_id,
+                session_id=self.session_id,
+                llm_model=self.model,
+            )
+            cache = {}
+            lazy = LazyAgentRegistry(
+                model=self.model,
+                cache=cache,
+                memory_manager=mm,
+            )
+            orch = OrchestrationAgent(
+                name="OrchestrationAgent",
+                agent_registry=lazy,
+                memory_manager=mm,
+            )
+            self._user_states[user_id] = {
+                "memory_manager": mm,
+                "agent_cache": cache,
+                "orchestrator": orch,
+                "lock": asyncio.Lock(),
+            }
+            logger.info(f"Created user state for: {user_id}")
+        return self._user_states[user_id]
+
+    async def process_message(self, user_id: str, message: str) -> dict:
         """处理用户消息，返回格式化结果"""
-        async with self._lock:
+        us = self._get_user_state(user_id)
+        mm = us["memory_manager"]
+        orch = us["orchestrator"]
+
+        async with us["lock"]:
             from agentscope.message import Msg
 
             rc = RESILIENCE_CONFIG
@@ -127,8 +142,8 @@ class TripSageWebApp:
             self.circuit_breaker.raise_if_open()
 
             # 2. 长期记忆摘要 + 短期上下文
-            long_term_summary = await self._get_long_term_summary(message)
-            recent_context = self.memory_manager.short_term.get_recent_context(n_turns=5)
+            long_term_summary = await self._get_long_term_summary(mm, message)
+            recent_context = mm.short_term.get_recent_context(n_turns=5)
 
             context_messages = []
             if long_term_summary:
@@ -158,12 +173,12 @@ class TripSageWebApp:
                 return self._error_response("无法理解您的需求，请重新描述")
 
             # 4. 保存用户消息到记忆
-            self.memory_manager.add_message("user", message)
+            mm.add_message("user", message)
 
             # 5. 编排调度
             try:
                 orchestration_result = await retry_with_backoff(
-                    lambda: self.orchestrator.reply(intention_result),
+                    lambda: orch.reply(intention_result),
                     max_retries=max_retries,
                     base_delay_sec=rc.get("retry_base_delay_sec", 1.0),
                     max_delay_sec=rc.get("retry_max_delay_sec", 30.0),
@@ -181,7 +196,7 @@ class TripSageWebApp:
                 result_data = {"error": "解析结果失败", "results": []}
 
             # 6. 保存助手响应到记忆
-            self.memory_manager.add_message("assistant", json.dumps(result_data, ensure_ascii=False))
+            mm.add_message("assistant", json.dumps(result_data, ensure_ascii=False))
 
             # 7. 格式化结果
             markdown, agents_called = format_result_to_markdown(result_data)
@@ -196,11 +211,11 @@ class TripSageWebApp:
                 "data": self._extract_sidebar_data(result_data),
             }
 
-    async def _get_long_term_summary(self, user_input: str = "") -> str:
-        """生成长期记忆摘要（与 CLI 版本逻辑一致）"""
+    async def _get_long_term_summary(self, mm: MemoryManager, user_input: str = "") -> str:
+        """生成长期记忆摘要"""
         summary_parts = []
 
-        prefs = self.memory_manager.long_term.get_preference()
+        prefs = mm.long_term.get_preference()
         if prefs:
             pref_lines = ["【用户背景信息】（来自长期记忆）"]
             for pref_key, pref_value in prefs.items():
@@ -213,14 +228,14 @@ class TripSageWebApp:
                 summary_parts.extend(pref_lines)
 
         try:
-            chat_summary = await self.memory_manager.get_long_term_summary_async(max_messages=50)
+            chat_summary = await mm.get_long_term_summary_async(max_messages=50)
             if chat_summary:
                 summary_parts.append("\n【历史会话总结】")
                 summary_parts.append(chat_summary)
         except Exception as e:
             logger.warning(f"Failed to generate chat summary: {e}")
 
-        all_trips = self.memory_manager.long_term.get_trip_history(limit=None)
+        all_trips = mm.long_term.get_trip_history(limit=None)
         if all_trips:
             relevant_trips = []
             other_trips = []
@@ -247,7 +262,6 @@ class TripSageWebApp:
         return "\n".join(summary_parts) if summary_parts else ""
 
     def _extract_sidebar_data(self, result_data: dict) -> dict:
-        """从结果中提取侧边栏需要的数据"""
         sidebar = {}
         for r in result_data.get("results", []):
             agent_name = r.get("agent_name", "")
@@ -281,33 +295,39 @@ class TripSageWebApp:
             "data": {},
         }
 
-    def get_status(self) -> dict:
-        short_stats = self.memory_manager.short_term.get_statistics()
-        long_stats = self.memory_manager.long_term.get_statistics()
+    def get_status(self, user_id: str) -> dict:
+        us = self._get_user_state(user_id)
+        mm = us["memory_manager"]
+        short_stats = mm.short_term.get_statistics()
+        long_stats = mm.long_term.get_statistics()
         cb_status = self.circuit_breaker.get_status() if self.circuit_breaker else {}
-        loaded = list(self._agent_cache.keys())
+        loaded = list(us["agent_cache"].keys())
         return {
             "short_term_memory": short_stats,
             "long_term_memory": long_stats,
             "loaded_agents": loaded,
             "circuit_breaker": cb_status,
-            "user_id": self.user_id,
+            "user_id": user_id,
             "session_id": self.session_id,
         }
 
-    def get_preferences(self) -> dict:
-        return {"preferences": self.memory_manager.long_term.get_preference()}
+    def get_preferences(self, user_id: str) -> dict:
+        us = self._get_user_state(user_id)
+        return {"preferences": us["memory_manager"].long_term.get_preference()}
 
-    def save_preference(self, pref_type: str, value: str) -> dict:
-        self.memory_manager.long_term.save_preference(pref_type, value)
+    def save_preference(self, user_id: str, pref_type: str, value: str) -> dict:
+        us = self._get_user_state(user_id)
+        us["memory_manager"].long_term.save_preference(pref_type, value)
         return {"status": "success", "message": f"已更新偏好: {pref_type}"}
 
-    def get_history(self) -> dict:
-        trips = self.memory_manager.long_term.get_trip_history(limit=20)
+    def get_history(self, user_id: str) -> dict:
+        us = self._get_user_state(user_id)
+        trips = us["memory_manager"].long_term.get_trip_history(limit=20)
         return {"trips": trips}
 
-    def clear_memory(self) -> dict:
-        self.memory_manager.short_term.clear()
+    def clear_memory(self, user_id: str) -> dict:
+        us = self._get_user_state(user_id)
+        us["memory_manager"].short_term.clear()
         return {"status": "success", "message": "短期记忆已清空"}
 
 
@@ -343,7 +363,7 @@ async def index():
 async def chat(request: Request, body: ChatRequest):
     ts = _tripsage(request)
     try:
-        result = await ts.process_message(body.message)
+        result = await ts.process_message(body.user_id, body.message)
         return result
     except CircuitOpenError:
         raise HTTPException(status_code=503, detail="服务暂时不可用，请稍后再试")
@@ -353,23 +373,23 @@ async def chat(request: Request, body: ChatRequest):
 
 
 @app.get("/api/status")
-async def status(request: Request):
-    return _tripsage(request).get_status()
+async def status(request: Request, user_id: str = Query("web_user")):
+    return _tripsage(request).get_status(user_id)
 
 
 @app.get("/api/history")
-async def history(request: Request):
-    return _tripsage(request).get_history()
+async def history(request: Request, user_id: str = Query("web_user")):
+    return _tripsage(request).get_history(user_id)
 
 
 @app.get("/api/preferences")
-async def get_preferences(request: Request):
-    return _tripsage(request).get_preferences()
+async def get_preferences(request: Request, user_id: str = Query("web_user")):
+    return _tripsage(request).get_preferences(user_id)
 
 
 @app.post("/api/preferences")
 async def update_preferences(request: Request, body: PreferenceRequest):
-    return _tripsage(request).save_preference(body.type, body.value)
+    return _tripsage(request).save_preference(body.user_id, body.type, body.value)
 
 
 @app.get("/api/health")
@@ -392,5 +412,5 @@ async def health(request: Request):
 
 
 @app.post("/api/clear")
-async def clear_memory(request: Request):
-    return _tripsage(request).clear_memory()
+async def clear_memory(request: Request, user_id: str = Query("web_user")):
+    return _tripsage(request).clear_memory(user_id)

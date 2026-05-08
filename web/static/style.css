@@ -187,6 +187,29 @@ body {
     font-size: 15px;
 }
 
+.user-id-input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color var(--transition);
+    background: var(--surface);
+    color: var(--text);
+}
+
+.user-id-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-50);
+}
+
+.user-id-input::placeholder {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
 .empty-state {
     color: var(--text-muted);
     font-size: 12px;
@@ -689,6 +712,22 @@ body {
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+}
+
+/* Sidebar overlay */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 99;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.sidebar-overlay.show {
+    display: block;
+    opacity: 1;
 }
 
 /* ── Responsive ──────────────────────────────────── */

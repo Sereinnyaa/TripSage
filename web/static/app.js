@@ -4,7 +4,7 @@
 
 // ── State ────────────────────────────────────────────
 const state = {
-    userId: 'web_user',
+    userId: localStorage.getItem('tripsage_user_id') || 'web_user',
     isLoading: false,
 };
 
@@ -17,8 +17,10 @@ const prefsEl = document.getElementById('sidebar-preferences');
 const historyEl = document.getElementById('sidebar-history');
 const statusEl = document.getElementById('sidebar-status');
 const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
 const sidebarToggle = document.getElementById('sidebar-toggle');
 const sidebarToggleMobile = document.getElementById('sidebar-toggle-mobile');
+const userIdInput = document.getElementById('user-id-input');
 
 // ── Marked config ────────────────────────────────────
 marked.setOptions({ breaks: true, gfm: true });
@@ -30,6 +32,15 @@ document.addEventListener('DOMContentLoaded', () => {
     sendBtn.addEventListener('click', () => sendMessage());
 
     // Sidebar toggle
+    function openSidebar() {
+        sidebar.classList.add('open');
+        if (sidebarOverlay) sidebarOverlay.classList.add('show');
+    }
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        if (sidebarOverlay) sidebarOverlay.classList.remove('show');
+    }
+
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => {
             sidebar.classList.add('collapsed');
@@ -37,7 +48,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (sidebarToggleMobile) {
         sidebarToggleMobile.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
+            if (sidebar.classList.contains('open')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        });
+    }
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebar);
+    }
+
+    // User ID input
+    if (userIdInput) {
+        userIdInput.value = state.userId === 'web_user' ? '' : state.userId;
+        userIdInput.addEventListener('change', () => {
+            const newId = userIdInput.value.trim() || 'web_user';
+            state.userId = newId;
+            localStorage.setItem('tripsage_user_id', newId);
+            loadSidebar();
+        });
+        userIdInput.addEventListener('blur', () => {
+            const newId = userIdInput.value.trim() || 'web_user';
+            state.userId = newId;
+            localStorage.setItem('tripsage_user_id', newId);
+            loadSidebar();
         });
     }
 
@@ -162,10 +197,11 @@ function hideTypingIndicator() {
 // ── Sidebar ──────────────────────────────────────────
 async function loadSidebar() {
     try {
+        const uid = encodeURIComponent(state.userId);
         const [statusRes, prefsRes, historyRes] = await Promise.all([
-            fetch('/api/status'),
-            fetch('/api/preferences'),
-            fetch('/api/history'),
+            fetch(`/api/status?user_id=${uid}`),
+            fetch(`/api/preferences?user_id=${uid}`),
+            fetch(`/api/history?user_id=${uid}`),
         ]);
 
         if (statusRes.ok) renderStatus(await statusRes.json());
