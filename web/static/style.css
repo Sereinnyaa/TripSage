@@ -748,8 +748,6 @@ body {
         width: var(--sidebar-width);
     }
 
-    .mobile-only { display: flex; }
-
     .message { max-width: 92%; }
 
     .welcome-cards {

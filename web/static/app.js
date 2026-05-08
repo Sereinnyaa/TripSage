@@ -31,33 +31,73 @@ document.addEventListener('DOMContentLoaded', () => {
     messageInput.addEventListener('input', autoResize);
     sendBtn.addEventListener('click', () => sendMessage());
 
-    // Sidebar toggle
+    // ── Sidebar toggle logic ─────────────────────────────
+    const isMobile = () => window.innerWidth <= 768;
+
     function openSidebar() {
         sidebar.classList.add('open');
+        sidebar.classList.remove('collapsed');
         if (sidebarOverlay) sidebarOverlay.classList.add('show');
+        syncButtons();
     }
     function closeSidebar() {
         sidebar.classList.remove('open');
         if (sidebarOverlay) sidebarOverlay.classList.remove('show');
+        syncButtons();
     }
 
+    // 桌面端：折叠/展开；移动端：关闭
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.add('collapsed');
-        });
-    }
-    if (sidebarToggleMobile) {
-        sidebarToggleMobile.addEventListener('click', () => {
-            if (sidebar.classList.contains('open')) {
+            if (isMobile()) {
                 closeSidebar();
             } else {
-                openSidebar();
+                sidebar.classList.add('collapsed');
+                syncButtons();
+            }
+        });
+    }
+
+    // 汉堡按钮：移动端开/关；桌面端展开
+    if (sidebarToggleMobile) {
+        sidebarToggleMobile.addEventListener('click', () => {
+            if (isMobile()) {
+                if (sidebar.classList.contains('open')) {
+                    closeSidebar();
+                } else {
+                    openSidebar();
+                }
+            } else {
+                sidebar.classList.remove('collapsed');
+                syncButtons();
             }
         });
     }
     if (sidebarOverlay) {
         sidebarOverlay.addEventListener('click', closeSidebar);
     }
+
+    function syncButtons() {
+        if (sidebarToggle) {
+            if (isMobile()) {
+                // 移动端：侧栏滑出时显示 < 关闭按钮
+                sidebarToggle.style.display = sidebar.classList.contains('open') ? '' : 'none';
+            } else {
+                // 桌面端：侧栏可见时显示 < 折叠按钮
+                sidebarToggle.style.display = sidebar.classList.contains('collapsed') ? 'none' : '';
+            }
+        }
+        if (sidebarToggleMobile) {
+            if (isMobile()) {
+                sidebarToggleMobile.style.display = 'flex';
+            } else {
+                sidebarToggleMobile.style.display = sidebar.classList.contains('collapsed') ? 'flex' : 'none';
+            }
+        }
+    }
+
+    window.addEventListener('resize', syncButtons);
+    syncButtons();
 
     // User ID input
     if (userIdInput) {
