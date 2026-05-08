@@ -187,14 +187,15 @@ python cli.py
 
 **桌面端：**
 
-![TripSage 桌面界面](界面.png)
+![TripSage 桌面界面](images\界面.png)
+![TripSage 桌面界面2](images\界面2.png)
 
 **移动端：**
 
 <p align="center">
-  <img src="手机页面1.png" alt="移动端-聊天界面" width="45%">
+  <img src="images\手机页面1.png" alt="移动端-聊天界面" width="45%">
   &nbsp;&nbsp;
-  <img src="手机页面2.png" alt="移动端-侧边栏" width="45%">
+  <img src="images\手机页面2.png" alt="移动端-侧边栏" width="45%">
 </p>
 
 ---
