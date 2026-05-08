@@ -34,7 +34,6 @@ wheels/
 .agentscope/
 
 # Data
-data/rag_knowledge/
 data/memory/*.json
 !data/memory/.gitkeep
 data/models/
@@ -46,4 +45,3 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
-data/rag_knowledge/

@@ -20,9 +20,9 @@ SYSTEM_CONFIG = {
     "timeout": 60,  # Increased timeout for better stability
 }
 
-# RAG 知识库：嵌入模型（本地路径，无需连 HuggingFace）
+# RAG 知识库：嵌入模型（自动检测本地 or HuggingFace 下载）
 RAG_CONFIG = {
-    "embedding_model": "data/models/bge-small-zh-v1.5",
+    "embedding_model": os.environ.get("TRIPSAGE_EMBEDDING_MODEL", "BAAI/bge-small-zh-v1.5"),
 }
 
 # 连接与可用性：重试、熔断、健康检查
