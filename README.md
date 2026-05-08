@@ -56,16 +56,6 @@
 - 构建标注测试集，定位 Top Bad Case 类型（同义表达 / 复合意图 / 上下文依赖）
 - 驱动三轮迭代优化，形成可复现评测 SOP
 
-## 项目成果
-
-| 指标 | 优化前 | 优化后 | 提升 |
-|------|--------|--------|------|
-| 意图识别准确率 | 65% | 90%+ | +25% |
-| 知识库问答准确率 | - | 96% | 新增 |
-| 用户偏好记忆准确率 | - | 95% | 新增 |
-| 系统响应时间 | 30s | 15s | -50% |
-| 系统启动速度 | - | 3s | 懒加载 |
-
 ---
 
 ## 快速开始
@@ -187,15 +177,15 @@ python cli.py
 
 **桌面端：**
 
-![TripSage 桌面界面](images\界面.png)
-![TripSage 桌面界面2](images\界面2.png)
+![TripSage 桌面界面](images/界面.png)
+![TripSage 桌面界面2](images/界面2.png)
 
 **移动端：**
 
 <p align="center">
-  <img src="images\手机页面1.png" alt="移动端-聊天界面" width="45%">
+  <img src="images/手机页面1.png" alt="移动端-聊天界面" width="45%">
   &nbsp;&nbsp;
-  <img src="images\手机页面2.png" alt="移动端-侧边栏" width="45%">
+  <img src="images/手机页面2.png" alt="移动端-侧边栏" width="45%">
 </p>
 
 ---
