@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TripSage 差旅出行助手</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.4 8 12 8 12s8-6.6 8-12a8 8 0 0 0-8-8z"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-name">TripSage</span>
+                    <span class="brand-subtitle">差旅出行助手</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebar-toggle" title="收起侧边栏">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+            </div>
+
+            <div class="sidebar-sections">
+                <section class="sidebar-card">
+                    <div class="card-header">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <h3>偏好设置</h3>
+                    </div>
+                    <div id="sidebar-preferences" class="card-body">
+                        <p class="empty-state">加载中...</p>
+                    </div>
+                </section>
+
+                <section class="sidebar-card">
+                    <div class="card-header">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <h3>行程历史</h3>
+                    </div>
+                    <div id="sidebar-history" class="card-body">
+                        <p class="empty-state">加载中...</p>
+                    </div>
+                </section>
+
+                <section class="sidebar-card">
+                    <div class="card-header">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        <h3>系统状态</h3>
+                    </div>
+                    <div id="sidebar-status" class="card-body">
+                        <p class="empty-state">加载中...</p>
+                    </div>
+                </section>
+            </div>
+
+            <div class="sidebar-footer">
+                <span class="session-badge">会话: --</span>
+            </div>
+        </aside>
+
+        <!-- 主聊天区 -->
+        <main class="chat-main">
+            <header class="chat-header">
+                <button class="sidebar-toggle mobile-only" id="sidebar-toggle-mobile" title="菜单">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <div class="header-info">
+                    <span class="header-title">TripSage</span>
+                    <span class="header-indicator" id="connection-status" title="系统状态">
+                        <span class="indicator-dot"></span>
+                        <span class="indicator-text">在线</span>
+                    </span>
+                </div>
+                <button class="header-btn" onclick="location.reload()" title="刷新">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M4 13a9 9 0 1 0 3-10.2"/></svg>
+                </button>
+            </header>
+
+            <div id="messages" class="messages-container">
+                <div class="welcome-screen">
+                    <div class="welcome-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                    </div>
+                    <h2 class="welcome-title">欢迎使用 TripSage</h2>
+                    <p class="welcome-desc">您的智能差旅出行助手，让每次出差都更简单高效</p>
+                    <div class="welcome-cards">
+                        <div class="welcome-card">
+                            <div class="wc-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.4 8 12 8 12s8-6.6 8-12a8 8 0 0 0-8-8z"/></svg>
+                            </div>
+                            <div class="wc-text">
+                                <strong>行程规划</strong>
+                                <span>智能规划多日多城差旅</span>
+                            </div>
+                        </div>
+                        <div class="welcome-card">
+                            <div class="wc-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            </div>
+                            <div class="wc-text">
+                                <strong>政策查询</strong>
+                                <span>差旅标准与报销政策</span>
+                            </div>
+                        </div>
+                        <div class="welcome-card">
+                            <div class="wc-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            </div>
+                            <div class="wc-text">
+                                <strong>出行信息</strong>
+                                <span>天气查询与城市指南</span>
+                            </div>
+                        </div>
+                        <div class="welcome-card">
+                            <div class="wc-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </div>
+                            <div class="wc-text">
+                                <strong>智能记忆</strong>
+                                <span>记住偏好与历史行程</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="welcome-hint">在下方输入您的问题开始使用</p>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <textarea id="message-input"
+                              placeholder="输入您的问题，例如：规划从上海到北京出差3天的行程"
+                              rows="1"
+                              autofocus></textarea>
+                    <button id="send-btn" title="发送 (Enter)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
