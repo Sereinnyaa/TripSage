@@ -45,3 +45,10 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# Cloudflare Workers demo
+demo/node_modules/
+demo/.wrangler/
+demo/.wrangler-config/
+demo/dist/
+demo/.dev.vars

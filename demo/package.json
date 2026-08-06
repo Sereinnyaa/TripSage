@@ -1,0 +1,16 @@
+{
+  "name": "tripsage-cloudflare-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "rag:build": "node scripts/build-rag-data.mjs",
+    "test": "node --test",
+    "dev": "wrangler dev --remote",
+    "deploy": "wrangler deploy",
+    "check": "wrangler deploy --dry-run --outdir dist"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

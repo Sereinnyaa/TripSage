@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <title>我的差旅知识库 · TripSage</title>
+    <link rel="stylesheet" href="/static/knowledge.css">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/" aria-label="返回 TripSage">
+            <span class="brand-mark">TS</span>
+            <span><strong>TripSage</strong><small>我的知识库</small></span>
+        </a>
+        <div class="topbar-actions">
+            <span class="space-status"><i></i>匿名临时空间</span>
+            <a class="back-link" href="/">返回对话</a>
+        </div>
+    </header>
+
+    <main class="page-shell">
+        <section class="hero-row">
+            <div>
+                <p class="eyebrow">PERSONAL KNOWLEDGE SPACE</p>
+                <h1>让回答更懂你的差旅规则</h1>
+                <p class="hero-copy">无需注册。内置资料对所有人只读；你上传的内容只会用于当前浏览器的问答。</p>
+            </div>
+            <div class="retention-card">
+                <span>自动清理</span>
+                <strong>24 小时</strong>
+                <small>清除浏览器数据后将无法继续管理</small>
+            </div>
+        </section>
+
+        <section class="privacy-banner" aria-label="隐私说明">
+            <span class="privacy-icon" aria-hidden="true">✓</span>
+            <div>
+                <strong>你的操作不会影响其他访客</strong>
+                <p>浏览器保存匿名空间钥匙，文档在 Cloudflare 中临时处理并隔离检索。请勿上传身份证、订单号或其他敏感信息。</p>
+            </div>
+        </section>
+
+        <section class="stats-grid" aria-label="知识库统计">
+            <article><span>内置资料</span><strong id="stat-built-in">—</strong><small>只读</small></article>
+            <article><span>我的上传</span><strong id="stat-personal">—</strong><small id="personal-limit">最多 3 份</small></article>
+            <article><span>可检索片段</span><strong id="stat-chunks">—</strong><small>自动向量化</small></article>
+            <article><span>空间状态</span><strong class="online">可用</strong><small>当前浏览器</small></article>
+        </section>
+
+        <section class="content-grid">
+            <article class="panel upload-panel">
+                <div class="panel-heading">
+                    <div><p class="eyebrow">ADD MY SOURCE</p><h2>上传临时资料</h2></div>
+                    <span class="quota" id="upload-quota">0 / 3</span>
+                </div>
+                <form id="upload-form">
+                    <label class="dropzone" id="dropzone" for="file-input">
+                        <input id="file-input" type="file" accept=".txt,.md,.csv,text/plain,text/markdown,text/csv" required>
+                        <span class="drop-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+                        </span>
+                        <strong id="drop-title">拖入文档，或点击选择</strong>
+                        <small>TXT、Markdown、CSV · 单份最多 5 万字符</small>
+                    </label>
+                    <label class="field-label" for="category-input">资料类型</label>
+                    <input class="text-input" id="category-input" maxlength="40" value="个人差旅规则" placeholder="例如：报销制度、出行偏好">
+                    <button class="primary-button" id="upload-button" type="submit">加入我的知识库</button>
+                    <p class="form-message" id="upload-message" role="status"></p>
+                </form>
+            </article>
+
+            <article class="panel library-panel">
+                <div class="panel-heading library-heading">
+                    <div><p class="eyebrow">AVAILABLE SOURCES</p><h2>当前可用资料</h2></div>
+                    <input class="search-input" id="search-input" type="search" placeholder="搜索资料或分类">
+                </div>
+                <div class="library-legend">
+                    <span><i class="legend-dot built-in"></i>内置资料只读</span>
+                    <span><i class="legend-dot personal"></i>我的上传可管理</span>
+                </div>
+                <div class="document-list" id="document-list">
+                    <div class="loading-state">正在打开你的知识空间…</div>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <dialog class="document-dialog" id="document-dialog">
+        <div class="dialog-header">
+            <div><p class="eyebrow" id="dialog-category"></p><h2 id="dialog-title"></h2></div>
+            <button class="icon-button" id="dialog-close" type="button" aria-label="关闭">×</button>
+        </div>
+        <pre id="dialog-content"></pre>
+        <div class="dialog-actions">
+            <button class="quiet-button" id="download-button" type="button">下载原文</button>
+            <button class="primary-button" id="dialog-done" type="button">完成</button>
+        </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="/static/knowledge.js"></script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+# 本文件只保存占位符，可以提交；请把真实值放在未跟踪的 .dev.vars 中。
+FLYAI_API_KEY=your_flyai_api_key
+FLYAI_SIGN_SECRET=your_flyai_sign_secret

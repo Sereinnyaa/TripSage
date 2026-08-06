@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tripsage",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-04",
+  "ai": {
+    "binding": "AI"
+  },
+  "vectorize": [
+    {
+      "binding": "RAG_INDEX",
+      "index_name": "tripsage-rag"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "RAG_STORE",
+      "id": "2ddfd94c6d464c9289679abfd00d86b7"
+    }
+  ],
+  "triggers": {
+    "crons": ["17 3 * * *"]
+  },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  }
+}
