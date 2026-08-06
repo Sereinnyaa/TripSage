@@ -4,8 +4,6 @@
 
 **在线体验（国内网络需 VPN）：** [https://tripsage.tripsage-cloudflare-demo.workers.dev](https://tripsage.tripsage-cloudflare-demo.workers.dev)
 
-<!-- 演示视频补录后放在此处 -->
-
 > 当前线上版本是轻量体验版，适合功能演示和少量试用。查询结果仅供行程决策参考，实际价格、库存及退改规则以供应商页面为准。
 
 ## 界面预览
