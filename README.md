@@ -2,7 +2,7 @@
 
 面向个人与小团队的智能差旅助手。用一次对话完成行程规划、实时天气查询、机酒高铁方案查询和企业差旅知识问答。
 
-**在线体验（国内网络通常需 VPN）：** [https://tripsage.tripsage-cloudflare-demo.workers.dev](https://tripsage.tripsage-cloudflare-demo.workers.dev)
+**在线体验（国内网络需 VPN）：** [https://tripsage.tripsage-cloudflare-demo.workers.dev](https://tripsage.tripsage-cloudflare-demo.workers.dev)
 
 <!-- 演示视频补录后放在此处 -->
 
@@ -81,6 +81,32 @@ TripSage 聚焦个体商旅用户的出差前规划：用户通常需要在交�
 - **个人知识空间**：无需账号即可上传 TXT、Markdown 或 CSV 文档；当前浏览器只能检索自己的临时资料。
 - **本机会话历史**：在浏览器中保存偏好、近期会话和行程，点击记录可恢复完整对话。
 - **预订跳转**：将已识别的城市、日期和人数带入查询流程，并提供供应商跳转入口。
+
+
+### 多 Agent 设计
+
+```text
+用户输入
+  → IntentionAgent：意图识别、实体提取、查询改写
+  → OrchestrationAgent：按依赖关系调度任务
+    ├─ MemoryQuery
+    ├─ EventCollection
+    ├─ Preference
+    ├─ InformationQuery
+    ├─ RAGKnowledge
+    └─ ItineraryPlanning
+  → 聚合回答并更新记忆
+```
+
+| Agent | 职责 |
+|---|---|
+| `IntentionAgent` | 识别规划、记忆、偏好、知识、信息查询和事项收集意图 |
+| `OrchestrationAgent` | 并行执行无依赖任务，并按优先级组织结果 |
+| `RAGKnowledgeAgent` | 检索差旅资料并提供来源 |
+| `EventCollectionAgent` | 提取城市、日期、人数和出行目的 |
+| `PreferenceAgent` | 维护交通、座席、住宿和预算偏好 |
+| `InformationQueryAgent` | 查询天气与外部出行信息 |
+| `ItineraryPlanningAgent` | 生成结构化差旅行程 |
 
 ## 评测方法与迭代
 
@@ -263,31 +289,6 @@ uvicorn web.app:app --host 0.0.0.0 --port 8000
 ```bash
 python cli.py
 ```
-
-## Python 多 Agent 设计
-
-```text
-用户输入
-  → IntentionAgent：意图识别、实体提取、查询改写
-  → OrchestrationAgent：按依赖关系调度任务
-    ├─ MemoryQuery
-    ├─ EventCollection
-    ├─ Preference
-    ├─ InformationQuery
-    ├─ RAGKnowledge
-    └─ ItineraryPlanning
-  → 聚合回答并更新记忆
-```
-
-| Agent | 职责 |
-|---|---|
-| `IntentionAgent` | 识别规划、记忆、偏好、知识、信息查询和事项收集意图 |
-| `OrchestrationAgent` | 并行执行无依赖任务，并按优先级组织结果 |
-| `RAGKnowledgeAgent` | 检索差旅资料并提供来源 |
-| `EventCollectionAgent` | 提取城市、日期、人数和出行目的 |
-| `PreferenceAgent` | 维护交通、座席、住宿和预算偏好 |
-| `InformationQueryAgent` | 查询天气与外部出行信息 |
-| `ItineraryPlanningAgent` | 生成结构化差旅行程 |
 
 ## 项目结构
 
